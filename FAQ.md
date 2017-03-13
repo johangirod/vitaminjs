@@ -9,5 +9,7 @@ And then just `git push heroku master`
 
 And you're done!
 
-### How to do change the HTML layout of a page ?
-### How to display something while AsyncProps loads data
+
+### How to I log with vitaminJS ?
+
+There is no logging system pre-installed 
