@@ -20,10 +20,11 @@ const MODULES_DIRECTORIES = [APP_MODULES, VITAMIN_MODULES_DIRECTORY];
 export const createBabelLoader = (env, options) => ({
     test: /\.js(x?)$/,
     loader: 'babel-loader',
-    include: path => !path.includes('node_modules') ||
-        (path.startsWith(VITAMIN_DIRECTORY)
-         && !path.startsWith(VITAMIN_MODULES_DIRECTORY)
-         && !path.startsWith(VITAMIN_MODULES_EXAMPLES_DIRECTORY)),
+    include: path =>
+        !path.includes('node_modules') ||
+        (path.startsWith(VITAMIN_DIRECTORY) &&
+            !path.startsWith(VITAMIN_MODULES_DIRECTORY) &&
+            !path.startsWith(VITAMIN_MODULES_EXAMPLES_DIRECTORY)),
     query: babelrc(env, options),
 });
 
@@ -49,11 +50,14 @@ export function config(options) {
                     removeAll: !options.dev,
                 },
                 importLoaders: 1,
-                ...(modules ? {
-                    localIdentName: options.dev ?
-                        '[name]__[local]___[hash:base64:5]' : '[hash:base64]',
-                    modules: true,
-                } : {}),
+                ...(modules
+                    ? {
+                        localIdentName: options.dev
+                              ? '[name]__[local]___[hash:base64:5]'
+                              : '[hash:base64]',
+                        modules: true,
+                    }
+                    : {}),
             },
         },
         'postcss-loader',
@@ -65,6 +69,7 @@ export function config(options) {
             publicPath: `${options.publicPath}/`,
         },
         module: {
+            ...(options.webpack.noParse ? { noParse: new RegExp(options.webpack.noParse) } : {}),
             // Disable handling of unknown requires
             unknownContextRegExp: /$^/,
             unknownContextCritical: true,
@@ -75,28 +80,34 @@ export function config(options) {
             wrappedContextRegExp: /$^/,
             wrappedContextCritical: true,
 
-            rules: [{
-                // only files with .global will go through this loader
-                test: /\.global\.css$/,
-                loaders: CSSLoaders({ modules: false }),
-            }, {
-                // anything with .global will not go through css modules loader
-                test: /^((?!\.global).)*\.css$/,
-                loaders: CSSLoaders({ modules: true }),
-            }, {
-                test: /\.(png|jpg|jpeg|gif|svg|ico|woff|woff2|eot|ttf)$/,
-                loader: 'url-loader',
-                options: {
-                    limit: 10000,
-                    name: join(options.filesPath, '[hash].[ext]'),
+            rules: [
+                {
+                    // only files with .global will go through this loader
+                    test: /\.global\.css$/,
+                    loaders: CSSLoaders({ modules: false }),
                 },
-            }, {
-                test: /\.json$/,
-                loader: 'json-loader',
-            }, {
-                test: /\.ya?ml$/,
-                loader: 'yaml-loader',
-            }],
+                {
+                    // anything with .global will not go through css modules loader
+                    test: /^((?!\.global).)*\.css$/,
+                    loaders: CSSLoaders({ modules: true }),
+                },
+                {
+                    test: /\.(png|jpg|jpeg|gif|svg|ico|woff|woff2|eot|ttf)$/,
+                    loader: 'url-loader',
+                    options: {
+                        limit: 10000,
+                        name: join(options.filesPath, '[hash].[ext]'),
+                    },
+                },
+                {
+                    test: /\.json$/,
+                    loader: 'json-loader',
+                },
+                {
+                    test: /\.ya?ml$/,
+                    loader: 'yaml-loader',
+                },
+            ],
         },
 
         resolveLoader: {
